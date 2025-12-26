@@ -1,0 +1,77 @@
+{
+  "name": "axios-sse",
+  "version": "1.0.0",
+  "description": "Lightweight Server-Sent Events (SSE) client for Axios with auto-reconnect and JSON parsing",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./browser": "./dist/index.browser.js"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "unpkg": "dist/index.browser.js",
+  "jsdelivr": "dist/index.browser.js",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "axios",
+    "sse",
+    "server-sent-events",
+    "typescript",
+    "streaming",
+    "real-time"
+  ],
+  "author": "Steven-Qiang",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Steven-Qiang/axios-sse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Steven-Qiang/axios-sse/issues"
+  },
+  "homepage": "https://github.com/Steven-Qiang/axios-sse#readme",
+  "peerDependencies": {
+    "axios": ">=0.21.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.7.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "@vitest/ui": "^4.0.16",
+    "eslint": "^9.39.2",
+    "eslint-plugin-format": "^1.1.0",
+    "express": "^5.2.1",
+    "jsdom": "^27.3.0",
+    "semantic-release": "^25.0.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "packageManager": "pnpm@10.26.2",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
