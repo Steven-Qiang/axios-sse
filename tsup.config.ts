@@ -17,7 +17,7 @@ export default defineConfig([
   },
   // Browser build
   {
-    entry: ['src/browser.ts'],
+    entry: ['src/index.ts'],
     format: ['iife'],
     outDir: 'dist',
     globalName: 'AxiosSSE',
