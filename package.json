@@ -1,6 +1,6 @@
 {
   "name": "axios-sse",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lightweight Server-Sent Events (SSE) client for Axios with auto-reconnect and JSON parsing",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
