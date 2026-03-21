@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig([
   // Node.js builds
@@ -10,25 +10,40 @@ export default defineConfig([
     sourcemap: true,
     clean: true,
     dts: true,
-    external: ['axios'],
-    outExtension({ format }) {
-      return { js: `.${format === 'esm' ? 'mjs' : 'js'}` };
+    outputOptions: {
+      exports: 'named',
+    },
+    deps: {
+      neverBundle: ['axios'],
+    },
+    outExtensions({ format }) {
+      return { js: `.${format === 'es' ? 'mjs' : 'cjs'}` };
     },
   },
   // Browser build
   {
     entry: ['src/index.ts'],
-    format: ['iife'],
+    format: 'iife',
     outDir: 'dist',
     globalName: 'AxiosSSE',
+    target: 'ES2015',
+    outExtensions() {
+      return { js: '.browser.js' };
+    },
     minify: true,
     sourcemap: true,
     platform: 'browser',
+    deps: {
+      neverBundle: ['axios'],
+    },
+    outputOptions: {
+      globals: {
+        axios: 'window.axios',
+      },
+      exports: 'named',
+    },
     footer: {
       js: 'if (typeof AxiosSSE === "object" && AxiosSSE.default) { AxiosSSE = AxiosSSE.default; }',
-    },
-    outExtension() {
-      return { js: '.browser.js' };
     },
   },
 ]);

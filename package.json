@@ -2,32 +2,37 @@
   "name": "axios-sse",
   "version": "1.0.1",
   "description": "Lightweight Server-Sent Events (SSE) client for Axios with auto-reconnect and JSON parsing",
-  "main": "dist/index.js",
+  "type": "module",
+  "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": {
+        "types": "./dist/index.d.cts",
+        "require": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs"
+      }
     },
-    "./browser": "./dist/index.browser.js"
+    "./browser": "./dist/index.iife.browser.js"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
-  "unpkg": "dist/index.browser.js",
-  "jsdelivr": "dist/index.browser.js",
+  "unpkg": "dist/index.iife.browser.js",
+  "jsdelivr": "dist/index.iife.browser.js",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "lint": "eslint src test",
     "lint:fix": "eslint src test --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:ui": "vitest --ui",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build --publint"
   },
   "keywords": [
     "axios",
@@ -61,7 +66,9 @@
     "eslint-plugin-format": "^1.1.0",
     "express": "^5.2.1",
     "jsdom": "^27.3.0",
+    "publint": "^0.3.18",
     "semantic-release": "^25.0.2",
+    "tsdown": "^0.21.4",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
