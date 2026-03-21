@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/Steven-Qiang/axios-sse/compare/v1.0.1...v1.0.2) (2026-03-21)
+
+
+### Bug Fixes
+
+* browser build external axios ([7b6293c](https://github.com/Steven-Qiang/axios-sse/commit/7b6293cdedd796dafbd0b31790974091b89a3042))
+
 ## [1.0.1](https://github.com/Steven-Qiang/axios-sse/compare/v1.0.0...v1.0.1) (2025-12-26)
 
 
