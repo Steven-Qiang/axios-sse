@@ -1,3 +1,16 @@
+# [2.0.0](https://github.com/Steven-Qiang/axios-sse/compare/v1.0.3...v2.0.0) (2026-03-21)
+
+
+### Features
+
+* v2 rewrite with dual browser/Node.js implementations ([ac5fba9](https://github.com/Steven-Qiang/axios-sse/commit/ac5fba95c39f74722c45c36846bf8b2e9e316da1))
+
+
+### BREAKING CHANGES
+
+* constructor signature changed — axiosInstance is now
+passed inside the config object instead of as a separate argument.
+
 ## [1.0.3](https://github.com/Steven-Qiang/axios-sse/compare/v1.0.2...v1.0.3) (2026-03-21)
 
 
