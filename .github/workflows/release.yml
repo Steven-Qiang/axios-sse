@@ -1,7 +1,11 @@
 name: Release
 
 on:
+  workflow_dispatch: 
   push:
+    paths:
+      - 'src/**'
+      - 'tsdown.config.ts'
     branches:
       - main
 

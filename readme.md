@@ -29,12 +29,12 @@ yarn add axios-sse
 
 ```html
 <!-- Include Axios first -->
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/axios"></script>
 <!-- Then include axios-sse -->
-<script src="https://unpkg.com/axios-sse/dist/index.browser.js"></script>
+<script src="https://unpkg.com/axios-sse"></script>
 
 <script>
-  const sse = new AxiosSSE('https://api.example.com/events');
+  const sse = new AxiosSSE('https://sse.dev/test');
   sse.addEventListener('message', (event) => {
     console.log('Received:', event.data);
   });
@@ -47,7 +47,7 @@ yarn add axios-sse
 import { AxiosSSE } from 'axios-sse';
 
 // Basic usage
-const sse = new AxiosSSE('https://api.example.com/events');
+const sse = new AxiosSSE('https://sse.dev/test');
 
 sse.addEventListener('message', (event) => {
   console.log('Received:', event.data);
@@ -105,7 +105,7 @@ interface SSEConfig {
 ```typescript
 import { AxiosSSE } from 'axios-sse';
 
-const sse = new AxiosSSE('https://api.example.com/events');
+const sse = new AxiosSSE('https://sse.dev/test');
 
 sse.addEventListener('message', (event) => {
   console.log('Message:', event.data);
@@ -129,7 +129,7 @@ const authenticatedAxios = axios.create({
   }
 });
 
-const sse = new AxiosSSE('https://api.example.com/events', authenticatedAxios);
+const sse = new AxiosSSE('https://sse.dev/test', authenticatedAxios);
 ```
 
 ### Custom Configuration
@@ -137,7 +137,7 @@ const sse = new AxiosSSE('https://api.example.com/events', authenticatedAxios);
 ```typescript
 import { AxiosSSE } from 'axios-sse';
 
-const sse = new AxiosSSE('https://api.example.com/events', {
+const sse = new AxiosSSE('https://sse.dev/test', {
   reconnectInterval: 5000,  // Retry every 5 seconds
   maxRetries: 10,           // Maximum 10 retry attempts
   autoConnect: false        // Don't connect automatically
@@ -153,7 +153,7 @@ sse.connect();
 import { AxiosSSE } from 'axios-sse';
 
 // Create instance without auto-connecting
-const sse = new AxiosSSE('https://api.example.com/events', {
+const sse = new AxiosSSE('https://sse.dev/test', {
   autoConnect: false
 });
 
@@ -216,7 +216,7 @@ interface SSEMessage {
 ```typescript
 import { AxiosSSE } from 'axios-sse';
 
-const sse = new AxiosSSE('https://api.example.com/events');
+const sse = new AxiosSSE('https://sse.dev/test');
 
 sse.addEventListener('error', (event) => {
   console.error('SSE Error:', event.detail);
@@ -240,7 +240,7 @@ const config: SSEConfig = {
   autoConnect: true
 };
 
-const sse = new AxiosSSE('https://api.example.com/events', config);
+const sse = new AxiosSSE('https://sse.dev/test', config);
 
 sse.addEventListener('message', (event: MessageEvent) => {
   const message: SSEMessage = event.data;
