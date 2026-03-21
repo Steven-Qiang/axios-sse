@@ -6,7 +6,7 @@
 
   <body>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="../dist/index.iife.browser.js"></script>
+    <script src="../dist/browser.iife.js"></script>
     <script>
       const sse = new AxiosSSE('https://sse.dev/test');
       sse.addEventListener('message', (event) => {
