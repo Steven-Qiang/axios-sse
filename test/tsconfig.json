@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM"],
+    "moduleResolution": "node",
+    "paths": {
+      "axios-sse": ["../"]
+    },
+    "types": ["vitest/globals", "node"],
+    "strict": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*"]
+}

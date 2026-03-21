@@ -1,259 +1,348 @@
-# axios-sse
+# Axios-SSE
 
 [![npm version](https://img.shields.io/npm/v/axios-sse.svg)](https://www.npmjs.com/package/axios-sse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A lightweight Server-Sent Events (SSE) client built on Axios with auto-reconnect and JSON parsing capabilities.
+A lightweight Server-Sent Events (SSE) client built on Axios with auto-reconnect, JSON parsing, and full streaming control.
 
 ## Features
 
-- 🚀 **Built on Axios** - Leverage the power and flexibility of Axios
-- 🔄 **Auto Reconnection** - Automatic reconnection with configurable retry logic
-- 📦 **JSON Auto-parsing** - Automatically parse JSON data in SSE messages
-- 🎯 **TypeScript Support** - Full TypeScript support with type definitions
-- 🔐 **Authentication** - Support for custom headers and authentication
-- ⚡ **Lightweight** - Minimal dependencies and small bundle size
-- 🛠️ **Flexible Configuration** - Customizable reconnection intervals and retry limits
+- 🚀 **Built on Axios** — leverage interceptors, instances, and all Axios config
+- 🌐 **Dual implementation** — XHR (`onDownloadProgress`) in the browser, readable stream in Node.js; bundlers pick the right one automatically via `package.json` `exports`
+- 🔄 **Auto Reconnection** — fixed interval or exponential backoff
+- 📦 **JSON Auto-parsing** — SSE `data:` fields are parsed automatically
+- 🎯 **TypeScript Support** — full type definitions included
+- 🔐 **Authentication** — custom headers, `axiosInstance`, or `beforeRequest` hook
+- 📡 **Named Events** — route SSE `event:` frames to dedicated handlers via `on()`
+- 📬 **POST / any method** — send a request body alongside the SSE stream
+- 🔁 **`Last-Event-ID`** — automatically sent on reconnect for server-side resume
+- ⚡ **Lifecycle Events** — `error` and `reconnect` events
 
 ## Installation
 
 ```bash
 npm install axios-sse
 # or
-pnpm install axios-sse
+pnpm add axios-sse
 # or
 yarn add axios-sse
 ```
 
-### CDN Usage
+### CDN
 
 ```html
-<!-- Include Axios first -->
 <script src="https://unpkg.com/axios"></script>
-<!-- Then include axios-sse -->
 <script src="https://unpkg.com/axios-sse"></script>
-
 <script>
   const sse = new AxiosSSE('https://sse.dev/test');
-  sse.addEventListener('message', (event) => {
-    console.log('Received:', event.data);
-  });
+  sse.addEventListener('message', (e) => console.log(e.data));
 </script>
 ```
+
+---
 
 ## Quick Start
 
 ```typescript
 import { AxiosSSE } from 'axios-sse';
 
-// Basic usage
 const sse = new AxiosSSE('https://sse.dev/test');
 
 sse.addEventListener('message', (event) => {
   console.log('Received:', event.data);
 });
 
-// Clean up when done
 sse.close();
 ```
+
+No extra configuration needed — Vite, Webpack, Rollup, and other bundlers automatically select the browser implementation via the `browser` condition in `package.json` exports. Node.js uses the stream-based implementation.
+
+---
 
 ## API Reference
 
 ### Constructor
 
-The `AxiosSSE` class supports multiple constructor overloads for maximum flexibility:
-
 ```typescript
-// Basic usage with URL only
-new AxiosSSE(url: string)
-
-// With SSE configuration
-new AxiosSSE(url: string, config: SSEConfig)
-
-// With custom Axios instance
-new AxiosSSE(url: string, axiosInstance: AxiosInstance)
-
-// With custom Axios instance and SSE configuration
-new AxiosSSE(url: string, axiosInstance: AxiosInstance, config: SSEConfig)
+new AxiosSSE(url: string, config?: SSEConfig)
 ```
+
+All options are passed through a single `SSEConfig` object.
 
 ### SSEConfig
 
 ```typescript
 interface SSEConfig {
-  reconnectInterval?: number;  // Reconnection interval in ms (default: 3000)
-  maxRetries?: number;         // Maximum retry attempts (default: 5)
-  autoConnect?: boolean;       // Auto-connect on instantiation (default: true)
+  /** Custom Axios instance (default: axios.create()) */
+  axiosInstance?: AxiosInstance;
+
+  /** HTTP method (default: "GET") */
+  method?: string;
+
+  /** Query string parameters */
+  params?: Record<string, any>;
+
+  /** Request body — typically used with POST */
+  data?: any;
+
+  /** Additional request headers */
+  headers?: Record<string, string>;
+
+  /** Milliseconds between reconnect attempts (default: 3000) */
+  reconnectInterval?: number;
+
+  /** Max reconnect attempts; 0 = disabled (default: 5) */
+  maxRetries?: number;
+
+  /** Connect immediately on instantiation (default: true) */
+  autoConnect?: boolean;
+
+  /** Double the delay after each failure, up to maxReconnectInterval (default: false) */
+  exponentialBackoff?: boolean;
+
+  /** Upper bound for exponential backoff delay in ms (default: 30000) */
+  maxReconnectInterval?: number;
+
+  /** Called before every connection attempt; return a partial AxiosRequestConfig */
+  beforeRequest?: () => AxiosRequestConfig | Promise<AxiosRequestConfig>;
+
+  /** Shorthand for addEventListener("message", handler) */
+  onMessage?: (event: MessageEvent<SSEMessage>) => void;
+
+  /** Shorthand for addEventListener("error", handler) */
+  onError?: (event: ErrorEvent) => void;
+}
+```
+
+### SSEMessage
+
+```typescript
+interface SSEMessage {
+  id?: string;     // value of the SSE id: field
+  event?: string;  // value of the SSE event: field
+  data: any;       // parsed JSON or raw string
 }
 ```
 
 ### Methods
 
-- `connect()` - Manually start the SSE connection
-- `close()` - Close the SSE connection
-- `readyState` - Get current connection state (0: connecting, 1: open, 2: closed)
+| Method                | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `connect()`           | Manually start the connection (resets retry counter) |
+| `close()`             | Permanently close the connection                     |
+| `on(event, handler)`  | Subscribe to a named SSE event type                  |
+| `off(event, handler)` | Unsubscribe a handler                                |
+
+### Properties
+
+| Property      | Type                  | Description                             |
+| ------------- | --------------------- | --------------------------------------- |
+| `readyState`  | `0 \| 1 \| 2`         | `0` connecting, `1` open, `2` closed    |
+| `lastEventId` | `string \| undefined` | ID from the last received message frame |
 
 ### Events
 
-- `message` - Fired when a message is received
-- `error` - Fired when an error occurs
+| Event       | Type                                 | Description                                                |
+| ----------- | ------------------------------------ | ---------------------------------------------------------- |
+| `message`   | `MessageEvent<SSEMessage>`           | Default SSE frame (no `event:` field, or `event: message`) |
+| `<custom>`  | `MessageEvent<SSEMessage>`           | Any named event from the `event:` field                    |
+| `error`     | `ErrorEvent`                         | Connection or network error                                |
+| `reconnect` | `CustomEvent<{ retryCount, delay }>` | Fired before each reconnect attempt                        |
+
+---
 
 ## Usage Examples
 
-### Basic Usage
+### POST with a request body
 
 ```typescript
 import { AxiosSSE } from 'axios-sse';
 
-const sse = new AxiosSSE('https://sse.dev/test');
+const sse = new AxiosSSE('https://api.example.com/chat', {
+  method: 'POST',
+  data: { prompt: 'Hello, world!' },
+  headers: { Authorization: 'Bearer your-token' },
+});
 
 sse.addEventListener('message', (event) => {
-  console.log('Message:', event.data);
-});
-
-sse.addEventListener('error', (event) => {
-  console.error('Error:', event.detail);
+  console.log(event.data); // SSEMessage
 });
 ```
 
-### With Authentication
+### Named events with `on()` / `off()`
 
 ```typescript
-import axios from 'axios';
-import { AxiosSSE } from 'axios-sse';
+const sse = new AxiosSSE('https://api.example.com/events');
 
-// Create authenticated Axios instance
-const authenticatedAxios = axios.create({
-  headers: {
-    'Authorization': 'Bearer your-token-here'
-  }
-});
+const handler = (event) => console.log('ping!', event.data);
 
-const sse = new AxiosSSE('https://sse.dev/test', authenticatedAxios);
+sse.on('ping', handler);
+
+// Later, unsubscribe
+sse.off('ping', handler);
 ```
 
-### Custom Configuration
+### Exponential backoff
 
 ```typescript
-import { AxiosSSE } from 'axios-sse';
-
-const sse = new AxiosSSE('https://sse.dev/test', {
-  reconnectInterval: 5000,  // Retry every 5 seconds
-  maxRetries: 10,           // Maximum 10 retry attempts
-  autoConnect: false        // Don't connect automatically
+const sse = new AxiosSSE('https://api.example.com/events', {
+  reconnectInterval: 1000,
+  maxRetries: 6,
+  exponentialBackoff: true,
+  maxReconnectInterval: 30000,
 });
 
-// Manually start connection
+sse.addEventListener('reconnect', (event) => {
+  console.log(`Retry #${event.detail.retryCount} in ${event.detail.delay}ms`);
+});
+```
+
+### Dynamic headers with `beforeRequest`
+
+```typescript
+const sse = new AxiosSSE('https://api.example.com/events', {
+  beforeRequest: async () => ({
+    headers: { Authorization: `Bearer ${await getAccessToken()}` },
+  }),
+});
+```
+
+### `lastEventId` resume
+
+The client automatically sends the `Last-Event-ID` header on every reconnect.
+You can also read or pre-seed it manually:
+
+```typescript
+const sse = new AxiosSSE('https://api.example.com/events');
+
+sse.addEventListener('message', (event) => {
+  console.log('Last ID so far:', sse.lastEventId);
+});
+```
+
+### `onMessage` / `onError` shorthands
+
+```typescript
+const sse = new AxiosSSE('https://api.example.com/events', {
+  onMessage: (event) => console.log(event.data),
+  onError: (event) => console.error(event.message),
+});
+```
+
+### Manual connection control
+
+```typescript
+const sse = new AxiosSSE('https://api.example.com/events', {
+  autoConnect: false,
+});
+
+console.log(sse.readyState); // 0
+
 sse.connect();
-```
+console.log(sse.readyState); // 1
 
-### Manual Connection Control
-
-```typescript
-import { AxiosSSE } from 'axios-sse';
-
-// Create instance without auto-connecting
-const sse = new AxiosSSE('https://sse.dev/test', {
-  autoConnect: false
-});
-
-// Check connection state
-console.log(sse.readyState); // 0 (not connected)
-
-// Start connection when ready
-sse.connect();
-console.log(sse.readyState); // 1 (connected)
-
-// Close connection
 sse.close();
-console.log(sse.readyState); // 2 (closed)
+console.log(sse.readyState); // 2
 ```
 
-### Advanced Usage with Custom Axios Configuration
+### Custom Axios instance
 
 ```typescript
 import axios from 'axios';
 import { AxiosSSE } from 'axios-sse';
 
-const customAxios = axios.create({
+const instance = axios.create({
   baseURL: 'https://api.example.com',
-  headers: {
-    'Authorization': 'Bearer token',
-    'Custom-Header': 'value'
-  },
-  timeout: 30000
+  headers: { Authorization: 'Bearer your-token' },
 });
 
-const sse = new AxiosSSE('/events', customAxios, {
-  reconnectInterval: 2000,
-  maxRetries: 3
+// Interceptors work as expected
+instance.interceptors.response.use((res) => res);
+
+const sse = new AxiosSSE('/events', { axiosInstance: instance });
+```
+
+---
+
+## How it works
+
+axios-sse ships two separate implementations behind a single import:
+
+| Environment | Mechanism | Condition |
+| --- | --- | --- |
+| Browser | `axios` + `onDownloadProgress` → `XHR.responseText` incremental reads | `browser` |
+| Node.js | `axios` + `responseType: 'stream'` → readable stream `data` events | `require` / `import` |
+
+Bundlers that respect the `browser` field in `package.json` exports (Vite, Webpack, Rollup, esbuild) will automatically use the browser build. No extra configuration or separate import path is needed.
+
+---
+
+## Migrating from v1 to v2
+
+### Breaking changes
+
+#### 1. Constructor signature
+
+v1 supported multiple overloads:
+
+```typescript
+// v1
+new AxiosSSE(url);
+new AxiosSSE(url, config);
+new AxiosSSE(url, axiosInstance);
+new AxiosSSE(url, axiosInstance, config);
+```
+
+v2 uses a single unified config object:
+
+```typescript
+// v2
+new AxiosSSE(url);
+new AxiosSSE(url, config);
+```
+
+Migration:
+
+```typescript
+// v1
+const sse = new AxiosSSE(url, myAxiosInstance, { reconnectInterval: 5000 });
+
+// v2
+const sse = new AxiosSSE(url, {
+  axiosInstance: myAxiosInstance,
+  reconnectInterval: 5000,
 });
 ```
 
-## SSE Message Format
+#### 2. `error` event type
 
-The client automatically parses SSE messages according to the standard format:
-
-```
-id: message-id
-event: custom-event-type
-data: {"key": "value"}
-
-```
-
-The parsed message will have the following structure:
+v1 dispatched a `CustomEvent` with the error in `event.detail`.  
+v2 dispatches a standard `ErrorEvent` with `event.error` and `event.message`.
 
 ```typescript
-interface SSEMessage {
-  id?: string;      // Message ID (if provided)
-  event?: string;   // Event type (if provided)
-  data: any;        // Parsed JSON data or raw string
-}
-```
-
-## Error Handling
-
-```typescript
-import { AxiosSSE } from 'axios-sse';
-
-const sse = new AxiosSSE('https://sse.dev/test');
-
+// v1
 sse.addEventListener('error', (event) => {
-  console.error('SSE Error:', event.detail);
-  
-  // The client will automatically attempt to reconnect
-  // based on the configured retry settings
+  console.error(event.detail);
+});
+
+// v2
+sse.addEventListener('error', (event) => {
+  console.error(event.error);   // the thrown value
+  console.error(event.message); // string description
 });
 ```
 
-## TypeScript Support
-
-This package includes full TypeScript support with type definitions:
-
-```typescript
-import { AxiosSSE, SSEConfig, SSEMessage } from 'axios-sse';
-import { AxiosInstance } from 'axios';
-
-const config: SSEConfig = {
-  reconnectInterval: 3000,
-  maxRetries: 5,
-  autoConnect: true
-};
-
-const sse = new AxiosSSE('https://sse.dev/test', config);
-
-sse.addEventListener('message', (event: MessageEvent) => {
-  const message: SSEMessage = event.data;
-  console.log(message.data);
-});
-```
+---
 
 ## Browser Compatibility
 
-This package works in all modern browsers that support:
-- EventTarget API
-- AbortController API
-- Axios requirements
+Works in all modern browsers that support:
+
+- `EventTarget`
+- `AbortController`
+- `XMLHttpRequest` (used internally by Axios)
+
+---
 
 ## License
 
@@ -265,4 +354,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for details about changes in each version.
+See [CHANGELOG.md](CHANGELOG.md) for details.
